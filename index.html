@@ -20,6 +20,7 @@
             cursor: pointer;
             transition: all 0.2s;
             border: 2px solid #e5e7eb;
+            user-select: none; /* ป้องกันการเลือกข้อความเมื่อกด */
         }
         .radio-label input[type="radio"]:checked + .radio-tile {
             background-color: #2563eb;
@@ -32,6 +33,15 @@
         }
         .radio-label input[type="radio"]:checked + .radio-tile:hover {
              background-color: #2563eb;
+        }
+        
+        /* สไตล์สำหรับปุ่มวิทยุ Q10/Q11 */
+        .suicidal-radio input[type="radio"] {
+            transform: scale(1.2); /* ทำให้ใหญ่ขึ้นเล็กน้อย */
+        }
+        /* ซ่อนส่วนกรอก URL */
+        #appsheetConfigSection {
+            display: none;
         }
     </style>
 </head>
@@ -54,8 +64,8 @@
             </div>
         </div>
         
-        <!-- AppSheet Config Input -->
-        <div class="mb-6 p-4 bg-gray-100 rounded-xl border border-gray-300">
+        <!-- AppSheet Config Input (ซ่อนไว้) -->
+        <div id="appsheetConfigSection" class="mb-6 p-4 bg-gray-100 rounded-xl border border-gray-300">
             <label for="appsheetURL" class="block text-sm font-medium text-gray-700 mb-2">
                 URL ของ AppSheet Form View (เช่น `#view=PHQ_A_Form&amp;`):
             </label>
@@ -68,11 +78,12 @@
             </p>
         </div>
 
-        <!-- คำชี้แจง -->
-        <div class="mb-6 p-4 border-l-4 border-blue-500 bg-blue-50 rounded-r-lg">
+        <!-- คำชี้แจง และ ตัวนับความสมบูรณ์ -->
+        <div class="mb-6 p-4 border-l-4 border-blue-500 bg-blue-50 rounded-r-lg flex justify-between items-center">
             <p class="text-md font-medium text-gray-700">
                 คำชี้แจง: ในช่วง 2 สัปดาห์ที่ผ่านมา คุณมีอาการต่อไปนี้บ่อยแค่ไหน? (เลือก 0-3 คะแนน)
             </p>
+            <span id="completionCounter" class="text-lg font-bold text-blue-700 bg-white px-3 py-1 rounded-full shadow">0/9</span>
         </div>
 
         <form id="phqaForm" class="space-y-6">
@@ -92,11 +103,11 @@
                     10. ใน 1 เดือนที่ผ่านมา มีช่วงไหนที่คุณมีความคิดอยากตาย หรือไม่อยากมีชีวิตอยู่อย่างจริงจังหรือไม่
                 </p>
                 <div class="flex space-x-4">
-                    <label class="flex items-center space-x-2">
+                    <label class="suicidal-radio flex items-center space-x-2">
                         <input type="radio" name="suiIdeation" value="ใช่" class="form-radio text-red-600 h-4 w-4" required />
                         <span>ใช่</span>
                     </label>
-                    <label class="flex items-center space-x-2">
+                    <label class="suicidal-radio flex items-center space-x-2">
                         <input type="radio" name="suiIdeation" value="ไม่ใช่" class="form-radio text-red-600 h-4 w-4" required />
                         <span>ไม่ใช่</span>
                     </label>
@@ -109,11 +120,11 @@
                     11. ตลอดชีวิตที่ผ่านมา คุณเคยพยายามที่จะทำให้ตัวเองตาย หรือลงมือฆ่าตัวตายหรือไม่
                 </p>
                 <div class="flex space-x-4">
-                    <label class="flex items-center space-x-2">
+                    <label class="suicidal-radio flex items-center space-x-2">
                         <input type="radio" name="suiAttempt" value="ใช่" class="form-radio text-red-600 h-4 w-4" required />
                         <span>ใช่</span>
                     </label>
-                    <label class="flex items-center space-x-2">
+                    <label class="suicidal-radio flex items-center space-x-2">
                         <input type="radio" name="suiAttempt" value="ไม่ใช่" class="form-radio text-red-600 h-4 w-4" required />
                         <span>ไม่ใช่</span>
                     </label>
@@ -233,6 +244,7 @@
         const appsheetSaveButton = document.getElementById('appsheetSaveButton');
         const appsheetLinkDisplay = document.getElementById('appsheetLinkDisplay');
         const resetButton = document.getElementById('resetButton');
+        const completionCounter = document.getElementById('completionCounter');
         
         // New inputs
         const inputName = document.getElementById('inputName');
@@ -491,7 +503,11 @@
         
         // 2. Build AppSheet URL with Parameters
         function buildAppSheetURL(formData, totalScore, result) {
-            const baseUrl = appsheetURLInput.value.trim();
+            // NOTE: URL นี้ถูกกำหนดค่าเริ่มต้นไว้ในโค้ด JavaScript แล้ว (ดูด้านล่าง)
+            const appsheetUrlValue = appsheetURLInput.value.trim();
+            
+            // ใช้ URL เริ่มต้นที่ซ่อนไว้ใน HTML (ถ้าผู้ใช้ไม่ได้กรอกเอง)
+            const baseUrl = appsheetUrlValue || '#view=PHQ_A_Form&';
             if (!baseUrl) {
                 return null;
             }
@@ -515,8 +531,10 @@
             }
             
             // 3. Additional questions (Q10-Q11)
-            params.push(`Q10_Ideation=${encodeURIComponent(formData.get('suiIdeation'))}`);
-            params.push(`Q11_Attempt=${encodeURIComponent(formData.get('suiAttempt'))}`);
+            const isIdeationAnswered = document.querySelector('input[name="suiIdeation"]:checked');
+            const isAttemptAnswered = document.querySelector('input[name="suiAttempt"]:checked');
+            params.push(`Q10_Ideation=${encodeURIComponent(isIdeationAnswered ? isIdeationAnswered.value : '')}`);
+            params.push(`Q11_Attempt=${encodeURIComponent(isAttemptAnswered ? isAttemptAnswered.value : '')}`);
             
             // Combine base URL and parameters
             return `${baseUrl}row=[${params.join(',')}]`;
@@ -534,9 +552,9 @@
             aiOutput.textContent = 'กดปุ่มด้านล่างเพื่อรับข้อความสรุปผลเชิงบวก';
             ttsButton.disabled = true;
 
-            // Check if user info is filled
-            if (!inputName.value || !inputLastName.value || !inputPhone.value) {
-                messageDisplay.textContent = 'กรุณากรอก ชื่อ, นามสกุล และเบอร์โทรศัพท์ ให้ครบถ้วน';
+            // --- VALIDATION CHECK 1: USER INFO ---
+            if (!inputName.value.trim() || !inputLastName.value.trim() || !inputPhone.value.trim()) {
+                messageDisplay.textContent = 'ข้อผิดพลาด: กรุณากรอก ชื่อ, นามสกุล และเบอร์โทรศัพท์ ให้ครบถ้วน';
                 resultSection.classList.add('hidden');
                 return;
             }
@@ -550,12 +568,24 @@
                 }
             }
 
-            // Validation for Q1-Q9 and Q10-Q11
-            if (questionsAnswered !== 9 || !formData.get('suiIdeation') || !formData.get('suiAttempt')) {
-                messageDisplay.textContent = 'กรุณาตอบคำถาม 9 ข้อหลัก และ 2 ข้อเพิ่มเติมให้ครบถ้วน';
+            // --- VALIDATION CHECK 2: QUIZ QUESTIONS ---
+            if (questionsAnswered !== 9) {
+                 messageDisplay.textContent = `ข้อผิดพลาด: กรุณาตอบคำถามหลัก (1-9) ให้ครบถ้วน (ขาดไป ${9 - questionsAnswered} ข้อ)`;
                 resultSection.classList.add('hidden');
                 return;
             }
+            
+            // --- VALIDATION CHECK 3: SUICIDAL QUESTIONS ---
+            const isIdeationAnswered = document.querySelector('input[name="suiIdeation"]:checked');
+            const isAttemptAnswered = document.querySelector('input[name="suiAttempt"]:checked');
+            
+            if (!isIdeationAnswered || !isAttemptAnswered) {
+                messageDisplay.textContent = 'ข้อผิดพลาด: กรุณาตอบคำถามเพิ่มเติม (Q10 และ Q11) ให้ครบถ้วน';
+                resultSection.classList.add('hidden');
+                return;
+            }
+
+            // All inputs are valid, proceed to display results
             
             // Display Results
             const result = getAssessmentResult(totalScore);
@@ -567,9 +597,10 @@
 
             // Show Warning
             const q9Score = parseInt(formData.get('q9'), 10);
-            const suiIdeation = formData.get('suiIdeation');
-            const suiAttempt = formData.get('suiAttempt');
-            const showWarning = q9Score > 0 || suiIdeation === 'ใช่' || suiAttempt === 'ใช่';
+            const suiIdeationValue = isIdeationAnswered.value;
+            const suiAttemptValue = isAttemptAnswered.value;
+
+            const showWarning = q9Score > 0 || suiIdeationValue === 'ใช่' || suiAttemptValue === 'ใช่';
             
             if (showWarning) {
                 warningTextDisplay.classList.remove('hidden');
@@ -580,7 +611,7 @@
             // Enable AI button after calculation
             interpretButton.disabled = false;
 
-            // Generate AppSheet Link
+            // Generate AppSheet Link (ใช้ค่าที่ดึงมาใหม่)
             finalAppSheetLink = buildAppSheetURL(formData, totalScore, result);
             if (finalAppSheetLink) {
                  appsheetLinkDisplay.textContent = finalAppSheetLink;
@@ -596,13 +627,28 @@
         
         // 4. AppSheet Save Handler
         function handleAppSheetSave() {
-            if (finalAppSheetLink && appsheetURLInput.value.trim()) {
+            if (finalAppSheetLink) {
                 window.location.href = finalAppSheetLink;
             } else {
-                messageDisplay.textContent = 'ไม่สามารถบันทึกได้: กรุณาคำนวณผลลัพธ์และตรวจสอบ AppSheet URL ก่อน';
+                messageDisplay.textContent = 'ไม่สามารถบันทึกได้: กรุณาคำนวณผลลัพธ์ก่อน';
             }
         }
         
+        // 5. Dynamic Counter Update
+        function updateCompletionCounter() {
+            const radioButtons = document.querySelectorAll('form#phqaForm input[type="radio"]');
+            const answeredQuestions = new Set();
+
+            radioButtons.forEach(radio => {
+                if (radio.checked) {
+                    // Extract question group name (q1, q2, etc.)
+                    const groupName = radio.name;
+                    answeredQuestions.add(groupName);
+                }
+            });
+            completionCounter.textContent = `${answeredQuestions.size}/9`;
+        }
+
         function handleReset() {
              form.reset();
              resultSection.classList.add('hidden');
@@ -620,10 +666,26 @@
              ttsButton.disabled = true;
              aiOutput.textContent = 'กดปุ่มด้านล่างเพื่อรับข้อความสรุปผลเชิงบวก';
              lastInterpretationText = '';
+             updateCompletionCounter(); // Reset counter
         }
 
         window.onload = function() {
             renderQuestions();
+            
+            // Initial setup of counter
+            updateCompletionCounter();
+
+            // Add event listeners for counter updates
+            const formRadios = form.querySelectorAll('input[type="radio"]');
+            formRadios.forEach(radio => {
+                radio.addEventListener('change', updateCompletionCounter);
+            });
+            
+            // ตั้งค่า URL เริ่มต้นที่ซ่อนไว้
+            // NOTE: หากคุณต้องการเปลี่ยนชื่อ Form View ในอนาคต ให้แก้ไขค่านี้:
+            appsheetURLInput.value = '#view=PHQ_A_Form&';
+
+
             submitButton.addEventListener('click', handleSubmit);
             appsheetSaveButton.addEventListener('click', handleAppSheetSave);
             resetButton.addEventListener('click', handleReset);
