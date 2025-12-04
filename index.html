@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แบบประเมิน PHQ-A</title>
+    <!-- โหลด Tailwind CSS CDN สำหรับการจัดสไตล์ -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        /* Custom radio button appearance */
+        .radio-label input[type="radio"] {
+            display: none;
+        }
+        .radio-tile {
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid #e5e7eb;
+        }
+        .radio-label input[type="radio"]:checked + .radio-tile {
+            background-color: #2563eb;
+            color: white;
+            border-color: #2563eb;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+        .radio-label:hover .radio-tile {
+            background-color: #eff6ff;
+        }
+        .radio-label input[type="radio"]:checked + .radio-tile:hover {
+             background-color: #2563eb;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+    <div class="max-w-3xl mx-auto bg-white p-6 md:p-8 rounded-xl shadow-2xl">
+        <h1 class="text-3xl font-extrabold text-center text-blue-800 mb-2">
+            แบบประเมิน PHQ-A
+        </h1>
+        <p class="text-center text-lg text-gray-600 mb-6">
+            (Patient Health Questionnaire for Adolescents: ฉบับ AppSheet)
+        </p>
+        
+        <!-- ข้อมูลผู้ทำแบบประเมิน -->
+        <div class="mb-6 p-4 bg-gray-100 rounded-xl border border-gray-300">
+            <h2 class="text-lg font-bold text-gray-800 mb-3">ข้อมูลเบื้องต้น</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <input type="text" id="inputName" name="inputName" placeholder="ชื่อ" class="p-2 border rounded-lg text-sm" required />
+                <input type="text" id="inputLastName" name="inputLastName" placeholder="นามสกุล" class="p-2 border rounded-lg text-sm" required />
+                <input type="tel" id="inputPhone" name="inputPhone" placeholder="เบอร์โทรศัพท์" class="p-2 border rounded-lg text-sm" required />
+            </div>
+        </div>
+        
+        <!-- AppSheet Config Input -->
+        <div class="mb-6 p-4 bg-gray-100 rounded-xl border border-gray-300">
+            <label for="appsheetURL" class="block text-sm font-medium text-gray-700 mb-2">
+                URL ของ AppSheet Form View (เช่น `#view=PHQ_A_Form&amp;`):
+            </label>
+            <input type="text" id="appsheetURL" 
+                   value="#view=PHQ_A_Form&" 
+                   class="w-full p-2 border border-gray-400 rounded-lg text-sm font-mono bg-white focus:ring-blue-500 focus:border-blue-500" 
+                   placeholder="เช่น #view=NewResultForm&amp;" />
+            <p class="text-xs text-gray-500 mt-1">
+                *ต้องแทนที่ `PHQ_A_Form` ด้วยชื่อ Form View ของคุณใน AppSheet
+            </p>
+        </div>
+
+        <!-- คำชี้แจง -->
+        <div class="mb-6 p-4 border-l-4 border-blue-500 bg-blue-50 rounded-r-lg">
+            <p class="text-md font-medium text-gray-700">
+                คำชี้แจง: ในช่วง 2 สัปดาห์ที่ผ่านมา คุณมีอาการต่อไปนี้บ่อยแค่ไหน? (เลือก 0-3 คะแนน)
+            </p>
+        </div>
+
+        <form id="phqaForm" class="space-y-6">
+            <!-- Questions will be dynamically inserted here -->
+        </form>
+
+        <!-- Suicidal Ideation/Attempt Questions (Q10-Q11) -->
+        <div class="mt-8 bg-red-50 p-6 rounded-xl shadow-lg space-y-4 border-2 border-red-200">
+            <h3 class="text-lg font-bold text-red-700 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                คำถามเพิ่มเติม (การคิดฆ่าตัวตาย)
+            </h3>
+
+            <!-- Q10: 1-month ideation -->
+            <div class="p-3 bg-white rounded-lg border">
+                <p class="font-semibold text-gray-800 mb-2">
+                    10. ใน 1 เดือนที่ผ่านมา มีช่วงไหนที่คุณมีความคิดอยากตาย หรือไม่อยากมีชีวิตอยู่อย่างจริงจังหรือไม่
+                </p>
+                <div class="flex space-x-4">
+                    <label class="radio-label flex items-center space-x-2">
+                        <input type="radio" name="suiIdeation" value="ใช่" class="form-radio text-red-600 h-4 w-4" required />
+                        <span>ใช่</span>
+                    </label>
+                    <label class="radio-label flex items-center space-x-2">
+                        <input type="radio" name="suiIdeation" value="ไม่ใช่" class="form-radio text-red-600 h-4 w-4" required />
+                        <span>ไม่ใช่</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Q11: Lifetime attempt -->
+            <div class="p-3 bg-white rounded-lg border">
+                <p class="font-semibold text-gray-800 mb-2">
+                    11. ตลอดชีวิตที่ผ่านมา คุณเคยพยายามที่จะทำให้ตัวเองตาย หรือลงมือฆ่าตัวตายหรือไม่
+                </p>
+                <div class="flex space-x-4">
+                    <label class="radio-label flex items-center space-x-2">
+                        <input type="radio" name="suiAttempt" value="ใช่" class="form-radio text-red-600 h-4 w-4" required />
+                        <span>ใช่</span>
+                    </label>
+                    <label class="radio-label flex items-center space-x-2">
+                        <input type="radio" name="suiAttempt" value="ไม่ใช่" class="form-radio text-red-600 h-4 w-4" required />
+                        <span>ไม่ใช่</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button id="submitButton" class="w-full flex items-center justify-center py-3 mt-8 text-lg font-bold rounded-xl shadow-lg transition duration-300 bg-blue-600 text-white hover:bg-blue-700 hover:shadow-xl">
+            คำนวณและแสดงผลลัพธ์
+        </button>
+        
+        <!-- Result Display -->
+        <div id="resultSection" class="mt-8 p-6 bg-gray-50 rounded-xl shadow-inner border border-gray-200 hidden">
+            <h2 class="text-2xl font-bold text-blue-800 mb-4 border-b pb-2">
+                ผลการประเมิน
+            </h2>
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <p class="text-gray-600 font-medium text-sm">คะแนนรวม (PHQ-A)</p>
+                    <p id="finalScore" class="text-4xl font-extrabold mt-1 text-blue-600">0</p>
+                </div>
+                <div>
+                    <p class="font-medium text-sm">ระดับภาวะซึมเศร้า</p>
+                    <p id="severityText" class="text-xl font-extrabold mt-1 text-green-700"></p>
+                </div>
+            </div>
+            
+            <div class="p-3 bg-yellow-100 border-l-4 border-yellow-500 rounded-r-lg">
+                <p class="font-semibold text-yellow-800">คำแนะนำ:</p>
+                <p id="recommendationText" class="text-sm text-yellow-700"></p>
+            </div>
+
+            <p id="warningText" class="text-sm text-red-600 mt-4 font-semibold hidden">
+                <span class="font-bold">คำเตือน:</span> มีความเสี่ยงต่อการคิดทำร้ายตนเอง ควรได้รับการประเมินความเสี่ยงอย่างละเอียดโดยผู้เชี่ยวชาญ
+            </p>
+            
+            <!-- Gemini AI Interpretation Section -->
+            <div id="aiSection" class="mt-6 p-4 bg-purple-50 rounded-xl border border-purple-200">
+                <h3 class="font-bold text-purple-800 mb-3 flex items-center">
+                    ✨ สรุปผลและให้กำลังใจ (โดย AI)
+                </h3>
+                <div id="aiOutput" class="text-sm text-gray-700 mb-3 whitespace-pre-wrap min-h-[40px] flex items-center justify-center">
+                    <p>กดปุ่มด้านล่างเพื่อรับข้อความสรุปผลเชิงบวก</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <button id="interpretButton" class="flex items-center justify-center py-2 text-sm font-semibold rounded-lg text-purple-700 bg-purple-300 hover:bg-purple-400 transition shadow" disabled>
+                        <svg class="animate-spin h-5 w-5 mr-2 text-purple-700 hidden" id="interpretSpinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        ✨ วิเคราะห์ผลเชิงบวก
+                    </button>
+                    <button id="ttsButton" class="flex items-center justify-center py-2 text-sm font-semibold rounded-lg text-purple-700 bg-purple-300 hover:bg-purple-400 transition shadow" disabled>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2V15H6L11 19V5Z"></path><path d="M15.54 8.46A5 5 0 0 1 18.04 12A5 5 0 0 1 15.54 15.54"></path></svg>
+                        🗣️ แปลงเป็นเสียงพูด
+                    </button>
+                </div>
+            </div>
+            
+            <!-- AppSheet Save Button -->
+            <button id="appsheetSaveButton" class="w-full flex items-center justify-center py-3 mt-6 text-lg font-bold rounded-xl shadow-lg transition duration-300 bg-green-600 text-white hover:bg-green-700 hover:shadow-xl">
+                บันทึกผลลัพธ์ใน AppSheet (เปิด Form View)
+            </button>
+            <p class="text-xs text-gray-500 mt-2 text-center">
+                Link ที่สร้างเพื่อส่งข้อมูล: <span id="appsheetLinkDisplay" class="font-mono text-xs break-all"></span>
+            </p>
+            
+            <button id="resetButton" class="w-full flex items-center justify-center py-2 mt-4 text-md font-semibold rounded-xl text-blue-600 border border-blue-600 hover:bg-blue-50 transition duration-300">
+                ทำแบบประเมินใหม่
+            </button>
+        </div>
+        
+        <p id="message" class="text-sm text-red-500 mt-4 text-center"></p>
+
+    </div>
+
+    <script>
+        const PHQ_A_QUESTIONS = [
+            "1. รู้สึกเบื่อ ทำอะไร ๆ ก็ไม่เพลิดเพลิน",
+            "2. ไม่สบายใจ ซึมเศร้า หรือท้อแท้",
+            "3. นอนไม่หลับ หรือนอนมากเกินไปในเกือบทุกวัน",
+            "4. อ่อนเพลีย ไม่มีแรง",
+            "5. เบื่ออาหาร หรือกินมากเกินไป",
+            "6. รู้สึกไม่ดีกับตัวเอง คิดว่าตัวเองล้มเหลว หรือเป็นคนทำให้ตัวเอง หรือครอบครัวผิดหวัง",
+            "7. สมาธิไม่ดีเวลาทำอะไร เช่น ดูโทรทัศน์ ฟังวิทยุ หรือทำงานที่ต้องใช้ความตั้งใจ",
+            "8. เคลื่อนไหวช้าลงจนคนอื่นสังเกตได้ หรือกระสับกระส่ายจนอยู่ไม่นิ่ง",
+            "9. คิดว่าถ้าตายไปเสียจะดีกว่า หรือคิดจะทำร้ายตัวเองด้วยวิธีใดวิธีหนึ่ง",
+        ];
+
+        const RESPONSE_OPTIONS = [
+            { label: "(0) ไม่มีเลย", score: 0, color: 'text-green-600' },
+            { label: "(1) มีบางวัน", score: 1, color: 'text-yellow-600' },
+            { label: "(2) มีมากกว่า 7 วัน", score: 2, color: 'text-orange-600' },
+            { label: "(3) มีแทบทุกวัน", score: 3, color: 'text-red-600' },
+        ];
+        
+        const SEVERITY_TABLE = [
+            { maxScore: 4, severity: "ไม่มีภาวะซึมเศร้า (None)", color: "text-green-700 bg-green-100", recommend: "ยังไม่มีแนวโน้มภาวะซึมเศร้า" },
+            { maxScore: 9, severity: "มีภาวะซึมเศร้าเล็กน้อย (Mild)", color: "text-yellow-700 bg-yellow-100", recommend: "ควรหาทางปรึกษาผู้ที่สามารถช่วยเหลือ หรือปรึกษาบุคคลที่ให้กำลังใจ" },
+            { maxScore: 14, severity: "มีภาวะซึมเศร้าปานกลาง (Moderate)", color: "text-amber-700 bg-amber-100", recommend: "ควรปรึกษาแพทย์เพื่อวินิจฉัยและบำบัดรักษา" },
+            { maxScore: 19, severity: "มีภาวะซึมเศร้ามาก (Moderately Severe)", color: "text-orange-700 bg-orange-100", recommend: "ควรปรึกษาแพทย์เพื่อวินิจฉัยและบำบัดรักษา" },
+            { maxScore: 27, severity: "มีภาวะซึมเศร้ารุนแรง (Severe)", color: "text-red-700 bg-red-100", recommend: "ควรปรึกษาแพทย์เพื่อวินิจฉัยและบำบัดรักษา" },
+        ];
+
+        const getAssessmentResult = (score) => {
+            return SEVERITY_TABLE.find(item => score <= item.maxScore) || SEVERITY_TABLE[SEVERITY_TABLE.length - 1];
+        };
+
+        const form = document.getElementById('phqaForm');
+        const resultSection = document.getElementById('resultSection');
+        const finalScoreDisplay = document.getElementById('finalScore');
+        const severityTextDisplay = document.getElementById('severityText');
+        const recommendationTextDisplay = document.getElementById('recommendationText');
+        const warningTextDisplay = document.getElementById('warningText');
+        const messageDisplay = document.getElementById('message');
+        const submitButton = document.getElementById('submitButton');
+        const appsheetURLInput = document.getElementById('appsheetURL');
+        const appsheetSaveButton = document.getElementById('appsheetSaveButton');
+        const appsheetLinkDisplay = document.getElementById('appsheetLinkDisplay');
+        const resetButton = document.getElementById('resetButton');
+        
+        // New inputs
+        const inputName = document.getElementById('inputName');
+        const inputLastName = document.getElementById('inputLastName');
+        const inputPhone = document.getElementById('inputPhone');
+
+        // Gemini AI elements
+        const interpretButton = document.getElementById('interpretButton');
+        const interpretSpinner = document.getElementById('interpretSpinner');
+        const ttsButton = document.getElementById('ttsButton');
+        const aiOutput = document.getElementById('aiOutput');
+        
+        let finalAppSheetLink = '';
+        let lastInterpretationText = '';
+        
+        // API Key (Canvas will provide this automatically)
+        const apiKey = ""; 
+        const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent";
+        const TTS_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent";
+
+
+        // --- Helper functions for Gemini API ---
+
+        // Exponential backoff retry logic
+        async function fetchWithRetry(url, options, retries = 3) {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.ok) {
+                        return response;
+                    }
+                    if (response.status === 429) { // Too many requests
+                        const delay = Math.pow(2, i) * 1000;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        continue;
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                } catch (error) {
+                    if (i === retries - 1) throw error;
+                    const delay = Math.pow(2, i) * 1000;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+        }
+        
+        // Base64 to ArrayBuffer for TTS conversion
+        function base64ToArrayBuffer(base64) {
+            const binaryString = atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        // PCM to WAV conversion (required for raw audio data from TTS)
+        function pcmToWav(pcm16, sampleRate) {
+            const buffer = new ArrayBuffer(44 + pcm16.length * 2);
+            const view = new DataView(buffer);
+
+            // WAV header
+            let offset = 0;
+            function writeString(str) {
+                for (let i = 0; i < str.length; i++) {
+                    view.setUint8(offset + i, str.charCodeAt(i));
+                }
+                offset += str.length;
+            }
+            function writeUint32(val) {
+                view.setUint32(offset, val, true);
+                offset += 4;
+            }
+            function writeUint16(val) {
+                view.setUint16(offset, val, true);
+                offset += 2;
+            }
+
+            writeString('RIFF'); // Chunk ID
+            writeUint32(36 + pcm16.length * 2); // Chunk Size
+            writeString('WAVE'); // Format
+
+            writeString('fmt '); // Sub-chunk 1 ID
+            writeUint32(16); // Sub-chunk 1 Size (16 for PCM)
+            writeUint16(1); // Audio Format (1 for PCM)
+            writeUint16(1); // Num Channels (Mono)
+            writeUint32(sampleRate); // Sample Rate
+            writeUint32(sampleRate * 2); // Byte Rate (SampleRate * NumChannels * 2 bytes/sample)
+            writeUint16(2); // Block Align (NumChannels * 2 bytes/sample)
+            writeUint16(16); // Bits Per Sample
+
+            writeString('data'); // Sub-chunk 2 ID
+            writeUint32(pcm16.length * 2); // Sub-chunk 2 Size
+
+            // PCM data
+            for (let i = 0; i < pcm16.length; i++) {
+                view.setInt16(offset, pcm16[i], true);
+                offset += 2;
+            }
+
+            return new Blob([view], { type: 'audio/wav' });
+        }
+        
+        // --- Gemini Feature Implementations ---
+
+        async function generateAIInterpretation(formData, totalScore, result) {
+            interpretButton.disabled = true;
+            ttsButton.disabled = true;
+            interpretSpinner.classList.remove('hidden');
+            aiOutput.innerHTML = '<p class="text-center text-purple-700">AI กำลังวิเคราะห์... (โปรดรอสักครู่)</p>';
+            
+            const qData = {};
+            PHQ_A_QUESTIONS.slice(0, 9).forEach((q, i) => {
+                const score = formData.get(`q${i + 1}`);
+                qData[q] = score;
+            });
+            const suiIdeation = formData.get('suiIdeation');
+
+            const systemPrompt = `You are a warm, supportive mental health AI assistant specializing in youth. Your goal is to provide a positive, encouraging, and non-diagnostic summary based on the PHQ-A results, written in Thai. The tone must be gentle, focusing on recognizing the user's experience and encouraging seeking help without causing distress.
+            
+            Format the response as a friendly, concise paragraph. DO NOT USE BULLET POINTS OR HEADERS.
+
+            Instructions:
+            1. Address the user directly in a supportive tone.
+            2. Acknowledge the overall score and severity level (${result.severity}, Score: ${totalScore}).
+            3. Mention the most prominent symptom (highest score in Q1-Q8, ignore Q9 for this analysis).
+            4. Gently reiterate the recommendation (Seeking professional help if score > 10).
+            5. End with a positive message about strength and taking the next steps.`;
+
+            const userQuery = `นี่คือผลคะแนน PHQ-A ของฉัน: คะแนนรวม ${totalScore} (${result.severity}) คำตอบรายข้อ (Q1-Q9): ${JSON.stringify(qData)}. การคิดฆ่าตัวตายใน 1 เดือน: ${suiIdeation}. สรุปผลนี้เป็นข้อความให้กำลังใจเป็นภาษาไทย`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+            };
+
+            try {
+                const response = await fetchWithRetry(`${GEMINI_API_URL}?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const resultJson = await response.json();
+                const text = resultJson.candidates?.[0]?.content?.parts?.[0]?.text || "ไม่สามารถสร้างข้อความให้กำลังใจได้ในขณะนี้";
+                
+                aiOutput.textContent = text;
+                lastInterpretationText = text;
+
+            } catch (error) {
+                console.error("Gemini API Error:", error);
+                aiOutput.textContent = "เกิดข้อผิดพลาดในการวิเคราะห์ (Gemini API Error)";
+                lastInterpretationText = "";
+            } finally {
+                interpretSpinner.classList.add('hidden');
+                interpretButton.disabled = false;
+                if (lastInterpretationText) {
+                    ttsButton.disabled = false;
+                }
+            }
+        }
+        
+        async function convertTextToSpeech() {
+            if (!lastInterpretationText) {
+                aiOutput.textContent = "กรุณากด 'วิเคราะห์ผลเชิงบวก' ก่อนเพื่อสร้างข้อความ";
+                return;
+            }
+
+            ttsButton.disabled = true;
+            const originalText = ttsButton.innerHTML;
+            ttsButton.innerHTML = '<svg class="animate-pulse h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464A5 5 0 0118.04 12A5 5 0 0115.536 15.536"></path><path stroke-linecap="round" stroke-linejoin="round" d="M11 5L6 9H2V15H6L11 19V5Z"></path></svg> กำลังสร้างเสียง...';
+
+            const payload = {
+                contents: [{ parts: [{ text: lastInterpretationText }] }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: {
+                        voiceConfig: {
+                            prebuiltVoiceConfig: { voiceName: "Kore" } // Using Kore for firm, clear voice
+                        }
+                    }
+                },
+            };
+
+            try {
+                const response = await fetchWithRetry(`${TTS_API_URL}?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const resultJson = await response.json();
+                const part = resultJson.candidates?.[0]?.content?.parts?.[0];
+                const audioData = part?.inlineData?.data;
+                const mimeType = part?.inlineData?.mimeType;
+
+                if (audioData && mimeType && mimeType.startsWith("audio/")) {
+                    const sampleRateMatch = mimeType.match(/rate=(\d+)/);
+                    const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 16000;
+                    
+                    const pcmData = base64ToArrayBuffer(audioData);
+                    const pcm16 = new Int16Array(pcmData);
+                    const wavBlob = pcmToWav(pcm16, sampleRate);
+                    const audioUrl = URL.createObjectURL(wavBlob);
+
+                    const audio = new Audio(audioUrl);
+                    audio.play();
+                    
+                    audio.onended = () => {
+                        ttsButton.innerHTML = originalText;
+                        ttsButton.disabled = false;
+                    };
+
+                } else {
+                    aiOutput.textContent = "ไม่สามารถสร้างไฟล์เสียงได้ (TTS Error)";
+                }
+
+            } catch (error) {
+                console.error("TTS API Error:", error);
+                aiOutput.textContent = "เกิดข้อผิดพลาดในการสร้างเสียง (TTS API Error)";
+            } finally {
+                if (ttsButton.innerHTML !== originalText) {
+                    ttsButton.innerHTML = originalText;
+                }
+                ttsButton.disabled = false;
+            }
+        }
+
+        // 1. Render Questions (Q1-Q9)
+        function renderQuestions() {
+            let html = '';
+            PHQ_A_QUESTIONS.slice(0, 9).forEach((q, index) => {
+                const qIndex = index + 1;
+                html += `
+                    <div class="p-4 bg-white rounded-xl shadow-md">
+                        <p class="font-semibold text-gray-800 mb-3">${q}</p>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                `;
+                RESPONSE_OPTIONS.forEach(option => {
+                    html += `
+                        <label class="radio-label">
+                            <input type="radio" name="q${qIndex}" value="${option.score}" required />
+                            <div class="radio-tile p-3 text-sm rounded-lg text-center">
+                                ${option.label}
+                            </div>
+                        </label>
+                    `;
+                });
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+            form.innerHTML = html;
+        }
+        
+        // 2. Build AppSheet URL with Parameters
+        function buildAppSheetURL(formData, totalScore, result) {
+            const baseUrl = appsheetURLInput.value.trim();
+            if (!baseUrl) {
+                return null;
+            }
+
+            let params = [];
+            
+            // --- USER DATA ---
+            params.push(`Name=${encodeURIComponent(inputName.value)}`);
+            params.push(`LastName=${encodeURIComponent(inputLastName.value)}`);
+            params.push(`Phone=${encodeURIComponent(inputPhone.value)}`);
+            
+            // 1. Basic results
+            params.push(`Total_Score=${totalScore}`);
+            params.push(`Severity=${encodeURIComponent(result.severity)}`);
+            params.push(`Timestamp=${new Date().toISOString()}`);
+
+            // 2. Individual scores (Q1-Q9)
+            for (let i = 1; i <= 9; i++) {
+                const score = formData.get(`q${i}`);
+                params.push(`Q${i}=${score}`); 
+            }
+            
+            // 3. Additional questions (Q10-Q11)
+            params.push(`Q10_Ideation=${encodeURIComponent(formData.get('suiIdeation'))}`);
+            params.push(`Q11_Attempt=${encodeURIComponent(formData.get('suiAttempt'))}`);
+            
+            // Combine base URL and parameters
+            return `${baseUrl}row=[${params.join(',')}]`;
+        }
+
+        // 3. Handle Form Submission
+        function handleSubmit(event) {
+            event.preventDefault();
+            messageDisplay.textContent = '';
+            
+            const formData = new FormData(form);
+            let totalScore = 0;
+            let questionsAnswered = 0;
+            lastInterpretationText = ''; // Reset AI text
+            aiOutput.textContent = 'กดปุ่มด้านล่างเพื่อรับข้อความสรุปผลเชิงบวก';
+            ttsButton.disabled = true;
+
+            // Check if user info is filled
+            if (!inputName.value || !inputLastName.value || !inputPhone.value) {
+                messageDisplay.textContent = 'กรุณากรอก ชื่อ, นามสกุล และเบอร์โทรศัพท์ ให้ครบถ้วน';
+                resultSection.classList.add('hidden');
+                return;
+            }
+
+            // Calculate score for Q1-Q9
+            for (let i = 1; i <= 9; i++) {
+                const score = formData.get(`q${i}`);
+                if (score !== null) {
+                    totalScore += parseInt(score, 10);
+                    questionsAnswered++;
+                }
+            }
+
+            // Validation for Q1-Q9 and Q10-Q11
+            if (questionsAnswered !== 9 || !formData.get('suiIdeation') || !formData.get('suiAttempt')) {
+                messageDisplay.textContent = 'กรุณาตอบคำถาม 9 ข้อหลัก และ 2 ข้อเพิ่มเติมให้ครบถ้วน';
+                resultSection.classList.add('hidden');
+                return;
+            }
+            
+            // Display Results
+            const result = getAssessmentResult(totalScore);
+            finalScoreDisplay.textContent = totalScore;
+            severityTextDisplay.textContent = result.severity;
+            recommendationTextDisplay.textContent = result.recommend;
+            
+            severityTextDisplay.className = `text-xl font-extrabold mt-1 ${result.color.replace('bg-', 'text-').replace('100', '700')}`;
+
+            // Show Warning
+            const q9Score = parseInt(formData.get('q9'), 10);
+            const suiIdeation = formData.get('suiIdeation');
+            const suiAttempt = formData.get('suiAttempt');
+            const showWarning = q9Score > 0 || suiIdeation === 'ใช่' || suiAttempt === 'ใช่';
+            
+            if (showWarning) {
+                warningTextDisplay.classList.remove('hidden');
+            } else {
+                warningTextDisplay.classList.add('hidden');
+            }
+
+            // Enable AI button after calculation
+            interpretButton.disabled = false;
+
+            // Generate AppSheet Link
+            finalAppSheetLink = buildAppSheetURL(formData, totalScore, result);
+            if (finalAppSheetLink) {
+                 appsheetLinkDisplay.textContent = finalAppSheetLink;
+            } else {
+                 appsheetLinkDisplay.textContent = 'กรุณาใส่ AppSheet URL ให้ถูกต้อง';
+            }
+
+            resultSection.classList.remove('hidden');
+            
+            // Scroll to result
+            resultSection.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // 4. AppSheet Save Handler
+        function handleAppSheetSave() {
+            if (finalAppSheetLink && appsheetURLInput.value.trim()) {
+                window.location.href = finalAppSheetLink;
+            } else {
+                messageDisplay.textContent = 'ไม่สามารถบันทึกได้: กรุณาคำนวณผลลัพธ์และตรวจสอบ AppSheet URL ก่อน';
+            }
+        }
+        
+        function handleReset() {
+             form.reset();
+             resultSection.classList.add('hidden');
+             messageDisplay.textContent = '';
+             finalAppSheetLink = '';
+             appsheetLinkDisplay.textContent = '';
+             document.body.scrollIntoView({ behavior: 'smooth' });
+             // Clear new inputs manually
+             inputName.value = '';
+             inputLastName.value = '';
+             inputPhone.value = '';
+             
+             // Reset AI elements
+             interpretButton.disabled = true;
+             ttsButton.disabled = true;
+             aiOutput.textContent = 'กดปุ่มด้านล่างเพื่อรับข้อความสรุปผลเชิงบวก';
+             lastInterpretationText = '';
+        }
+
+        window.onload = function() {
+            renderQuestions();
+            submitButton.addEventListener('click', handleSubmit);
+            appsheetSaveButton.addEventListener('click', handleAppSheetSave);
+            resetButton.addEventListener('click', handleReset);
+            
+            // Add listeners for Gemini features
+            interpretButton.addEventListener('click', () => {
+                const formData = new FormData(form);
+                const totalScore = parseInt(finalScoreDisplay.textContent, 10) || 0;
+                const result = getAssessmentResult(totalScore);
+                generateAIInterpretation(formData, totalScore, result);
+            });
+            ttsButton.addEventListener('click', convertTextToSpeech);
+        };
+    </script>
+</body>
+</html>
